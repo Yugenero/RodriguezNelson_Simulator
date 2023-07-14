@@ -1,0 +1,79 @@
+[
+	{
+	  "timestamp": "2023-06-22T10:30:00Z",
+	  "cadence": 170
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:05Z",
+	  "cadence": 165
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:10Z",
+	  "cadence": 168
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:15Z",
+	  "cadence": 172
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:20Z",
+	  "cadence": 175
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:25Z",
+	  "cadence": 169
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:30Z",
+	  "cadence": 166
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:35Z",
+	  "cadence": 170
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:40Z",
+	  "cadence": 173
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:45Z",
+	  "cadence": 168
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:50Z",
+	  "cadence": 165
+	},
+	{
+	  "timestamp": "2023-06-22T10:30:55Z",
+	  "cadence": 167
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:00Z",
+	  "cadence": 172
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:05Z",
+	  "cadence": 169
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:10Z",
+	  "cadence": 171
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:15Z",
+	  "cadence": 167
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:20Z",
+	  "cadence": 165
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:25Z",
+	  "cadence": 169
+	},
+	{
+	  "timestamp": "2023-06-22T10:31:30Z",
+	  "cadence": 173
+	}
+  ]
+  
