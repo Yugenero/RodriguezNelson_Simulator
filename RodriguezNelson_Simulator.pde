@@ -1,4 +1,5 @@
 // Import Necessary Libraries
+
 import guru.ttslib.*;
 import beads.*;
 import org.jaudiolibs.beads.*;
@@ -11,6 +12,7 @@ TextToSpeechMaker ttsMaker;
 
 JSONArray cadenceData;
 Clock metronome;
+SamplePlayer tickSound;
 
 float CadenceValue;
 float StepImpactValue;
@@ -44,21 +46,23 @@ ArrayList<Notification> notifications;
 void setup() {
   size(1000, 600);
   p5 = new ControlP5(this);
-  ac = new AudioContext(); // defined in helper functions 
+  ac = new AudioContext(); // defined in helper functions; created using Beads library
   
-  /*ttsMaker = new TextToSpeechMaker();
-  String exampleSpeech = "Text to speech is okay, I guess.";
-  ttsExamplePlayback(exampleSpeech); //see ttsExamplePlayback below for usage*/
+  cadenceData = loadJSONArray("Cadence.json"); // retrive cadence from JSON array
+  tickSound = getSamplePlayer("Cadence.mp3");
+  tickSound.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
 
-  masterGainGlide = new Glide(ac, 1.0, 200);
-  masterGainGlide.setValue(0.5); // initial glide value
-  masterGain = new Gain(ac, 1, masterGainGlide); // controls volume of audio signals
+  // Volume properties
+  masterGainGlide = new Glide(ac, 1.0, 500);
+  masterGain = new Gain(ac, 1, masterGainGlide);
   
   // low pass filter
   filterGlide = new Glide(ac, 10.0, 0.5f);
   bqFilter = new BiquadFilter(ac, BiquadFilter.LP, filterGlide, 0.5f);
   
+  // add inputs to master gain
   masterGain.addInput(bqFilter);
+  masterGain.addInput(tickSound);  
   ac.out.addInput(masterGain);
   
   // User Interface
@@ -102,11 +106,10 @@ void setup() {
     .setColorBackground(color(0, 100, 200))
     .activateBy((ControlP5.RELEASE));
     
-  p5.addSlider("MasterVolume")
+  p5.addSlider("MasterGainSlider")
     .setSize(30, 230)
     .setLabel("Master Gain")
     .setPosition(225, 325)
-    .setRange(0, 100)
     .setColorForeground(color(0, 200, 200))
     .setColorBackground(color(0, 100, 200));
        
@@ -118,37 +121,18 @@ void setup() {
     .setRange(100, 200)
     .setLabel("Set Target Cadence");
     
-  ac.start();
+   ac.start();
+
 }
 
 // controls overall volume of audio sonifications
-public void MasterVolume(float value) {
-  masterGain.setValue(value/50);
+public void MasterGainSlider(float value) {
+  masterGain.setValue(value);
 }
 
-// Text-To-Speech Functionality 
-/*void ttsExamplePlayback(String inputSpeech) {
-  //create TTS file and play it back immediately
-  //the SamplePlayer will remove itself when it is finished in this case
-  String ttsFilePath = ttsMaker.createTTSWavFile(inputSpeech);
-  println("File created at " + ttsFilePath);
-  //createTTSWavFile makes a new WAV file of name ttsX.wav, where X is a unique integer
-  //it returns the path relative to the sketch's data directory to the wav file
-
-  //see helper_functions.pde for actual loading of the WAV file into a SamplePlayer
-  SamplePlayer sp = getSamplePlayer(ttsFilePath, true); 
-  //true means it will delete itself when it is finished playing
-  //you may or may not want this behavior!
-  ac.out.addInput(sp);
-  sp.setToLoopStart();
-  sp.start();
-  println("TTS: " + inputSpeech);
-}*/
-
 void draw() {
-  // method should be here even if empty
   background(color(20, 20, 20));
-  
   fill(40, 40, 40);
   rect(0, height/2, width, height/2);
+ 
 }
