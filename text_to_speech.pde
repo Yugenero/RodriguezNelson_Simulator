@@ -21,7 +21,7 @@ class TextToSpeechMaker {
   private Voice voice;
     
   public TextToSpeechMaker() {
-    
+    System.setProperty("freetts.voices", "com.sun.speech.freetts.en.us.cmu_us_kal.KevinVoiceDirectory");
     VoiceManager voiceManager = VoiceManager.getInstance();
     voice = voiceManager.getVoice("kevin16");
     //using other voices is not supported (unfortunately), so you are stuck with Kevin16
