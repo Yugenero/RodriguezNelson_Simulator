@@ -10,6 +10,7 @@ ControlP5 p5;
 TextToSpeechMaker ttsMaker;
 
 JSONArray cadenceData;
+PImage Navigation;
 SamplePlayer simulatorStart;
 SamplePlayer toggle;
 SamplePlayer unToggle;
@@ -35,6 +36,7 @@ boolean enableCadence = true;
 boolean enableHeartRate = true;
 boolean enableStepImpact = true;
 boolean enableStrideLength = true;
+boolean enableGPS = true;
 boolean cadenceAlert = true;
 boolean heartRateAlert = true;
 boolean stepImpactAlert = true;
@@ -43,7 +45,6 @@ Button Cadence;
 Button StepImpact;
 Button HeartRate;
 Button StrideLength;
-Button Navigation;
 
 Glide masterGainGlide;
 Glide cadenceGlide;
@@ -91,6 +92,8 @@ void setup() {
   heartRateBeep.pause(true);
   stepImpactIntensity.pause(true);
   strideLengthSynth.pause(true);
+  
+  Navigation = loadImage("Navigation.png");
 
   cadenceData = loadJSONArray("Cadence.json"); // retrive cadence from JSON array
   cadenceTick.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
@@ -223,13 +226,29 @@ public void toggleStrideLength() {
   enableStrideLength = !enableStrideLength;
 }
 
+public void toggleGPS() {
+  if (enableGPS) {
+    toggle.start(0);
+    ttsExamplePlayback("GPS Enabled");
+    image(Navigation, width/2, height/2);
+  } else {
+    unToggle.start(0);
+    ttsExamplePlayback("GPS Disabled");
+  }
+  enableGPS = !enableGPS;
+}
+
 // reset all sonfications
 public void resetAll() {
   unToggle.start(0);
   cadenceTick.pause(true);
+  enableCadence = !enableCadence;
   heartRateBeep.pause(true);
+  enableHeartRate = !enableHeartRate;
   stepImpactIntensity.pause(true);
+  enableStepImpact = !enableStepImpact;
   strideLengthSynth.pause(true);
+  enableStrideLength = !enableStrideLength;
 }
 
 
@@ -288,7 +307,7 @@ public void ConstructUI() {
     .setColorActive(color(255, 0, 100))
     .activateBy((ControlP5.RELEASE));
 
-  p5.addButton("Navigation")
+  p5.addButton("toggleGPS")
     .setSize(150, 30)
     .setLabel("Toggle GPS")
     .setPosition(50, 490)
@@ -363,16 +382,6 @@ public void ConstructUI() {
     .setLabel("Set Target Heart Rate");
 
   // replace with GPS
-  testKnob = p5.addKnob("test2")
-    .setViewStyle(Knob.ELLIPSE)
-    .setNumberOfTickMarks(15)
-    .setDragDirection(10)
-    .setPosition(525, 50)
-    .setRadius(100)
-    .setAngleRange(2*PI)
-    .setRange(100, 200)
-    .setValue(140)
-    .setLabel("Set Target Heart Rate");
 }
 
 // UI Geometry and Function Calls
@@ -399,15 +408,21 @@ void draw() {
  
   }
   setStrideLength();
-
   // UI Geometry
   background(color(20, 20, 20));
 
   fill(40, 40, 40);
   rect(10, height/2, 780, 290);
+  rect(10, height/2, 370, 290);
+  // rect(width/2 + 100, 10, 370, 290);
 
   fill (20, 20, 20);
   rect(width/2, height/2 + 30, 370, 230);
+  
+  if (!enableGPS) {
+      image(Navigation, width/2 + 130, 30, 230, 230);
+  }
+
 
   fill(255);
   textSize(15);
