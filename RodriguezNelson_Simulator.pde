@@ -22,6 +22,7 @@ SamplePlayer stepImpactIntensity;
 SamplePlayer strideLengthSynth;
 
 Slider paceSlider;
+Slider stepImpactSlider;
 Knob cadenceKnob;
 Knob heartRateKnob;
 Knob testKnob;
@@ -42,6 +43,7 @@ boolean enableGPS = true;
 boolean cadenceAlert = true;
 boolean heartRateAlert = true;
 boolean stepImpactAlert = true;
+boolean toggleFilter = false;
 
 Button Cadence;
 Button StepImpact;
@@ -58,13 +60,15 @@ Glide paceGlide;
 Glide filterGlide;
 
 Gain masterGain;
-BiquadFilter bqFilter;
+BiquadFilter filter;
+Reverb reverb;
 
 String eventJSON1 = "Cadence.json";
 String eventJSON2 = "Heart_Rate.json";
 String eventJSON3 = "Step_Impact.json";
 String NavigationTTS;
 String heartRateStatus;
+String stepImpactI;
 
 
 NotificationServer server;
@@ -108,7 +112,9 @@ void setup() {
   masterGain = new Gain(ac, 1, masterGainGlide);
 
   filterGlide = new Glide(ac, 10.0, 0.5f);
-  bqFilter = new BiquadFilter(ac, BiquadFilter.LP, filterGlide, 0.5f);
+  filter = new BiquadFilter(ac, BiquadFilter.LP, filterGlide, 0.5f);
+  filter.setFrequency(1000); // 1000 -> cutoff
+  reverb = new Reverb(ac);
 
   cadenceGlide = new Glide(ac, 1.0, 10);
   cadenceTick.setRate(cadenceGlide);
@@ -135,7 +141,8 @@ void setup() {
   wavePlayer.pause(true);
 
   // add inputs to gain and ac
-  masterGain.addInput(bqFilter);
+  masterGain.addInput(filter);
+  masterGain.addInput(reverb);
   masterGain.addInput(cadenceTick);
   masterGain.addInput(heartRateBeep);
   masterGain.addInput(stepImpactIntensity);
@@ -159,6 +166,11 @@ void setup() {
 // controls overall volume of audio sonifications
 public void MasterGainSlider(float value) {
   masterGainGlide.setValue(value/100);
+}
+
+public void StepImpactSlider(float value) {
+  wavePlayer.setFrequency(value/60);
+  filter.setFrequency(value/500);
 }
 
 // control frequency of runner cadence
@@ -187,13 +199,12 @@ public void setStrideLength() {
 }
 
 public String getStepImpactIntensity() {
-  // play a tts maybe
-  if (!enableStepImpact && wavePlayer.getFrequency() < 100) {
+  if (!enableStepImpact && stepImpactSlider.getValue() < 4000) {
     return "Forceful";
-  } else if (!enableStepImpact && wavePlayer.getFrequency() > 100 &&
-    wavePlayer.getFrequency() < 3000) {
+  } else if (!enableStepImpact && stepImpactSlider.getValue() >= 4000 &&
+    stepImpactSlider.getValue() <= 10000) {
     return "Moderate";
-  } else if (!enableStepImpact && wavePlayer.getFrequency() > 3000) {
+  } else if (!enableStepImpact && stepImpactSlider.getValue() > 10000) {
     return "Light";
   } else {
     return "N/A";
@@ -275,13 +286,27 @@ public void resetAll() {
   enableCadence = !enableCadence;
   heartRateBeep.pause(true);
   enableHeartRate = !enableHeartRate;
-  ;
   stepImpactIntensity.pause(true);
   enableStepImpact = !enableStepImpact;
   strideLengthSynth.pause(true);
   enableStrideLength = !enableStrideLength;
 }
 
+public void setFilter() {
+  if (toggleLowPassFilter() == true) {
+    masterGainGlide.setValue(filterGlide.getValue() * 1000);
+  }
+}
+
+public boolean toggleLowPassFilter() {
+  if (toggleFilter == true) {
+    toggle.start(0);
+    return toggleFilter;
+  } else {
+    unToggle.start(0);
+    return toggleFilter;
+  }
+}
 
 // gradualy change cadence value using linear interpolation
 public void heartRateCheck() {
@@ -291,7 +316,7 @@ public void heartRateCheck() {
     heartRateKnob.setColorActive(color(255, 0, 100));
     heartRateStatus = "Too High";
   } else {
-    heartRateKnob.setColorForeground(color(100, 255, 100));
+    heartRateKnob.setColorForeground(color(100, 200, 100));
     heartRateKnob.setColorActive(color(100, 255, 100));
     heartRateStatus = "Stable";
   }
@@ -305,7 +330,7 @@ public void ConstructUI() {
   p5.addButton("toggleCadence")
     .setSize(150, 30)
     .setLabel("Toggle Cadence")
-    .setPosition(50, 330)
+    .setPosition(30, 330)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
@@ -314,7 +339,7 @@ public void ConstructUI() {
   p5.addButton("toggleHeartRate")
     .setSize(150, 30)
     .setLabel("Toggle Heart Rate")
-    .setPosition(50, 370)
+    .setPosition(30, 370)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
@@ -323,7 +348,7 @@ public void ConstructUI() {
   p5.addButton("toggleStrideLength")
     .setSize(150, 30)
     .setLabel("Toggle Stride Length")
-    .setPosition(50, 410)
+    .setPosition(30, 410)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
@@ -332,7 +357,7 @@ public void ConstructUI() {
   p5.addButton("toggleStepImpact")
     .setSize(150, 30)
     .setLabel("Toggle Step Impact")
-    .setPosition(50, 450)
+    .setPosition(30, 450)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
@@ -341,7 +366,7 @@ public void ConstructUI() {
   p5.addButton("toggleGPS")
     .setSize(150, 30)
     .setLabel("Toggle GPS")
-    .setPosition(50, 490)
+    .setPosition(30, 490)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
@@ -350,11 +375,21 @@ public void ConstructUI() {
   p5.addButton("resetAll")
     .setLabel("Reset Sonifications")
     .setSize(150, 30)
-    .setPosition(50, 530)
+    .setPosition(30, 530)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
     .activateBy((ControlP5.RELEASE));
+    
+  p5.addButton("toggleLowPassFilter")
+    .setLabel("Toggle LP Filter")
+    .setSize(150, 15)
+    .setPosition(30, 570)
+    .setColorForeground(color(255, 0, 100))
+    .setColorBackground(color(120, 0, 50))
+    .setColorActive(color(255, 0, 100))
+    .activateBy((ControlP5.RELEASE));
+  
 
   p5.addButton("recommendNavigation")
     .setLabel("Suggest Route Guidance")
@@ -367,29 +402,29 @@ public void ConstructUI() {
 
   p5.addSlider("MasterGainSlider")
     .setValue(20)
-    .setSize(25, 230)
+    .setSize(30, 230)
     .setLabel("Master Gain")
-    .setPosition(225, 325)
+    .setPosition(200, 325)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
-  
-  p5.addSlider("StepImpactSlider")
-    .setValue(300)
-    .setSize(25, 230)
+
+  stepImpactSlider = p5.addSlider("StepImpactSlider")
+    .setValue(2500)
+    .setSize(30, 230)
     .setRange(10, 20000)
-    .setLabel("Master Gain")
-    .setPosition(310, 325)
+    .setLabel("Step Impact")
+    .setPosition(330, 325)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
 
   paceSlider = p5.addSlider("paceSlider")
-    .setSize(25, 230)
+    .setSize(30, 230)
     .setRange(1500, 200)
     .setValue(500)
     .setLabel("Target Pace")
-    .setPosition(280, 325)
+    .setPosition(265, 325)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
@@ -409,7 +444,7 @@ public void ConstructUI() {
     .setAngleRange(2*PI) // radians
     .setRange(120, 220)
     .setValue(140)
-    .setLabel("Set Target Cadence")
+    .setLabel("Target Cadence")
     .plugTo(this, "SetTargetCadence");
 
   // controls frequency of heart rate (BPM)
@@ -426,7 +461,7 @@ public void ConstructUI() {
     .setAngleRange(2*PI) // radians
     .setRange(60, 200)
     .setValue(100)
-    .setLabel("Set Target Heart Rate");
+    .setLabel("Target Heart Rate");
 
   // replace with GPS
 }
@@ -455,12 +490,12 @@ void draw() {
   }
   setStrideLength();
 
-  // UI Geometry
+  // UI Geometry/Data Visual
   background(color(20, 20, 20));
 
   fill(40, 40, 40);
   rect(10, height/2, 780, 290);
-  rect(10, height/2, 370, 290);
+  rect(10, height/2, 385, 290);
   rect(width/2 + 120, 20, 250, 250);
   image(Navigation, width/2 + 130, 30, 230, 230);
 
@@ -469,21 +504,37 @@ void draw() {
 
   fill(255);
   textSize(15);
-  text("Sonification Toggles", 50, height/2 + 20);
+  text("Sonification Toggles", 30, height/2 + 20);
   text("Sensor Data", width/2 + 10, height/2 + 20);
   text("Current Cadence (SPM) - " + (int)cadenceKnob.getValue(), width/2 + 20, height/2 + 60);
   text("Current Heart Rate (BPM) - " + (int)heartRateKnob.getValue(), width/2 + 20, height/2 + 90);
-  text("Step Impact Intensity - " + getStepImpactIntensity(), width/2 + 20, height/2 + 120);
+  text("Step Impact Intensity - ", width/2 + 20, height/2 + 120);
   text("Stride length (feet) - " + String.format("%.02f", StrideLengthValue), width/2 + 20, height/2 + 150);
   text("Velocity (miles/hour) - " + String.format("%.02f", velocity), width/2 + 20, height/2 + 180);
   text("Pace (minutes/mile) - " + String.format("%.02f", paceSlider.getValue()/60.0f), width/2 + 20, height/2 + 210);
 
+  // UI extras
   if (heartRateKnob.getValue() > 185) {
     fill(255, 0, 0);
     text(heartRateStatus, width/2 + 215, height/2 + 90);
   } else {
     fill(0, 255, 0);
     text(heartRateStatus, width/2 + 215, height/2 + 90);
+  }
+
+  stepImpactI = getStepImpactIntensity();
+  if (stepImpactI == "Light") {
+    fill(0, 120, 255);
+    text(stepImpactI, width/2 + 165, height/2 + 120);
+  } else if (stepImpactI == "Moderate") {
+    fill(0, 255, 0);
+    text(stepImpactI, width/2 + 165, height/2 + 120);
+  } else if (stepImpactI == "Forceful") {
+    fill(255, 0, 0);
+    text(stepImpactI, width/2 + 165, height/2 + 120);
+  } else {
+    fill(255);
+    text(stepImpactI, width/2 + 165, height/2 + 120);
   }
 }
 
