@@ -1,0 +1,43 @@
+[
+	{
+	  "timestamp": "2023-07-17T08:00:00",
+	  "step_impact_intensity": "Moderate"
+	},
+	{
+	  "timestamp": "2023-07-17T08:05:00",
+	  "step_impact_intensity": "Light"
+	},
+	{
+	  "timestamp": "2023-07-17T08:10:00",
+	  "step_impact_intensity": "Forceful"
+	},
+	{
+	  "timestamp": "2023-07-17T08:15:00",
+	  "step_impact_intensity": "Moderate"
+	},
+	{
+	  "timestamp": "2023-07-17T08:20:00",
+	  "step_impact_intensity": "Light"
+	},
+	{
+	  "timestamp": "2023-07-17T08:25:00",
+	  "step_impact_intensity": "Moderate"
+	},
+	{
+	  "timestamp": "2023-07-17T08:30:00",
+	  "step_impact_intensity": "Forceful"
+	},
+	{
+	  "timestamp": "2023-07-17T08:35:00",
+	  "step_impact_intensity": "Light"
+	},
+	{
+	  "timestamp": "2023-07-17T08:40:00",
+	  "step_impact_intensity": "Moderate"
+	},
+	{
+	  "timestamp": "2023-07-17T08:45:00",
+	  "step_impact_intensity": "Forceful"
+	}
+  ]
+  

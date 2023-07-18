@@ -1,0 +1,42 @@
+[
+  {
+    "timestamp": "2023-07-17T08:00:00",
+    "heart_rate": 80
+  },
+  {
+    "timestamp": "2023-07-17T08:05:00",
+    "heart_rate": 78
+  },
+  {
+    "timestamp": "2023-07-17T08:10:00",
+    "heart_rate": 85
+  },
+  {
+    "timestamp": "2023-07-17T08:15:00",
+    "heart_rate": 90
+  },
+  {
+    "timestamp": "2023-07-17T08:20:00",
+    "heart_rate": 92
+  },
+  {
+    "timestamp": "2023-07-17T08:25:00",
+    "heart_rate": 88
+  },
+  {
+    "timestamp": "2023-07-17T08:30:00",
+    "heart_rate": 85
+  },
+  {
+    "timestamp": "2023-07-17T08:35:00",
+    "heart_rate": 82
+  },
+  {
+    "timestamp": "2023-07-17T08:40:00",
+    "heart_rate": 79
+  },
+  {
+    "timestamp": "2023-07-17T08:45:00",
+    "heart_rate": 75
+  }
+]

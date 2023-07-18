@@ -10,6 +10,8 @@ ControlP5 p5;
 TextToSpeechMaker ttsMaker;
 
 JSONArray cadenceData;
+JSONArray heartRateData;
+JSONArray stepImpactData;
 PImage Navigation;
 
 WavePlayer wavePlayer;
@@ -43,7 +45,7 @@ boolean enableGPS = true;
 boolean cadenceAlert = true;
 boolean heartRateAlert = true;
 boolean stepImpactAlert = true;
-boolean toggleFilter = false;
+boolean toggleFilter = true;
 
 Button Cadence;
 Button StepImpact;
@@ -64,8 +66,8 @@ BiquadFilter filter;
 Reverb reverb;
 
 String eventJSON1 = "Cadence.json";
-String eventJSON2 = "Heart_Rate.json";
-String eventJSON3 = "Step_Impact.json";
+String eventJSON2 = "Heart_rate.json";
+String eventJSON3 = "Step_impact.json";
 String NavigationTTS;
 String heartRateStatus;
 String stepImpactI;
@@ -102,6 +104,8 @@ void setup() {
   Navigation = loadImage("Navigation.png");
 
   cadenceData = loadJSONArray("Cadence.json"); // retrive cadence from JSON array
+  heartRateData = loadJSONArray("Heart_rate.json");
+  stepImpactData = loadJSONArray("Step_impact.json");
   cadenceTick.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
   heartRateBeep.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
   stepImpactIntensity.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
@@ -301,9 +305,11 @@ public void setFilter() {
 public boolean toggleLowPassFilter() {
   if (toggleFilter == true) {
     toggle.start(0);
+    toggleFilter = !toggleFilter;
     return toggleFilter;
   } else {
     unToggle.start(0);
+    toggleFilter = !toggleFilter;
     return toggleFilter;
   }
 }
@@ -404,7 +410,7 @@ public void ConstructUI() {
     .setValue(20)
     .setSize(30, 230)
     .setLabel("Master Gain")
-    .setPosition(200, 325)
+    .setPosition(200, 330)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
@@ -414,7 +420,7 @@ public void ConstructUI() {
     .setSize(30, 230)
     .setRange(10, 20000)
     .setLabel("Step Impact")
-    .setPosition(330, 325)
+    .setPosition(330, 330)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
@@ -424,7 +430,7 @@ public void ConstructUI() {
     .setRange(1500, 200)
     .setValue(500)
     .setLabel("Target Pace")
-    .setPosition(265, 325)
+    .setPosition(265, 330)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
@@ -500,7 +506,7 @@ void draw() {
   image(Navigation, width/2 + 130, 30, 230, 230);
 
   fill (20, 20, 20);
-  rect(width/2, height/2 + 30, 370, 230);
+  rect(width/2 + 10, height/2 + 30, 370, 240);
 
   fill(255);
   textSize(15);
