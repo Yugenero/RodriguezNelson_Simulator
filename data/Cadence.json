@@ -1,39 +1,39 @@
 [
 	{
 	  "timestamp": "2023-06-22T10:30:00Z",
-	  "cadence": 170
+	  "cadence": 100
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:05Z",
-	  "cadence": 165
+	  "cadence": 120
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:10Z",
-	  "cadence": 168
+	  "cadence": 130
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:15Z",
-	  "cadence": 172
+	  "cadence": 150
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:20Z",
-	  "cadence": 175
+	  "cadence": 150
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:25Z",
-	  "cadence": 169
+	  "cadence": 160
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:30Z",
-	  "cadence": 166
-	},
-	{
-	  "timestamp": "2023-06-22T10:30:35Z",
 	  "cadence": 170
 	},
 	{
+	  "timestamp": "2023-06-22T10:30:35Z",
+	  "cadence": 180
+	},
+	{
 	  "timestamp": "2023-06-22T10:30:40Z",
-	  "cadence": 173
+	  "cadence": 190
 	},
 	{
 	  "timestamp": "2023-06-22T10:30:45Z",

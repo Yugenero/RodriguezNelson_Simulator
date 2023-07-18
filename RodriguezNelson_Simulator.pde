@@ -29,13 +29,16 @@ Knob cadenceKnob;
 Knob heartRateKnob;
 Knob testKnob;
 
-float targetCadence;
+float cadenceValue;
+float heartRateValue;
+float stepImpactValue;
 float targetHeartRate;
 float targetPace;
 float StepImpactValue;
 float StrideLengthValue;
 float velocity;
 float increment = 0.01;
+int framerate = 1000;
 
 boolean enableCadence = true;
 boolean enableHeartRate = true;
@@ -46,6 +49,7 @@ boolean cadenceAlert = true;
 boolean heartRateAlert = true;
 boolean stepImpactAlert = true;
 boolean toggleFilter = true;
+boolean toggleDemoCondition = false;
 
 Button Cadence;
 Button StepImpact;
@@ -82,7 +86,7 @@ void setup() {
   size(800, 600);
   p5 = new ControlP5(this);
   ac = new AudioContext(); // defined in helper functions; created using Beads library
-
+  
   server = new NotificationServer();
   server.addListener(notificationListener);
 
@@ -102,10 +106,10 @@ void setup() {
   strideLengthSynth.pause(true);
 
   Navigation = loadImage("Navigation.png");
-
-  cadenceData = loadJSONArray("Cadence.json"); // retrive cadence from JSON array
+  cadenceData = loadJSONArray("Cadence.json"); 
   heartRateData = loadJSONArray("Heart_rate.json");
   stepImpactData = loadJSONArray("Step_impact.json");
+  
   cadenceTick.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
   heartRateBeep.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
   stepImpactIntensity.setLoopType(SamplePlayer.LoopType.LOOP_FORWARDS);
@@ -387,10 +391,10 @@ public void ConstructUI() {
     .setColorActive(color(255, 0, 100))
     .activateBy((ControlP5.RELEASE));
     
-  p5.addButton("toggleLowPassFilter")
-    .setLabel("Toggle LP Filter")
+  p5.addButton("toggleDemo")
+    .setLabel("Toggle Demo")
     .setSize(150, 15)
-    .setPosition(30, 570)
+    .setPosition(width/2 + 20, 550)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100))
@@ -474,6 +478,9 @@ public void ConstructUI() {
 
 // UI Geometry and Function Calls
 void draw() {
+  
+  frameRate(framerate);
+  
   // function calls
   if (cadenceKnob.getValue() >= 150 && heartRateKnob.getValue() >= 150.0) {
     if (cadenceAlert) {
@@ -542,6 +549,41 @@ void draw() {
     fill(255);
     text(stepImpactI, width/2 + 165, height/2 + 120);
   }
+  
+    
+  if (toggleDemoCondition) { 
+    if (frameCount < cadenceData.size()) {
+      JSONObject cadenceObject = cadenceData.getJSONObject(frameCount);
+      if (cadenceObject != null && cadenceObject.hasKey("cadence")) {
+        float cadence = cadenceObject.getFloat("cadence");
+        cadenceKnob.setValue(cadence);
+      }
+    } if (frameCount < heartRateData.size()) {
+      JSONObject hrObject = heartRateData.getJSONObject(frameCount);
+      if (hrObject != null && hrObject.hasKey("heart_rate")) {
+        float hr = hrObject.getFloat("heart_rate");
+        heartRateKnob.setValue(hr);
+      }
+    }
+    frameCount++;
+  }
+}
+
+public void toggleDemo() {
+  if (!toggleDemoCondition) {
+    toggle.start(0);
+    ttsExamplePlayback("Loading J-SON Data");
+    toggleDemoCondition = !toggleDemoCondition;
+    framerate = 1;
+    frameCount = 0;
+  } else {
+    unToggle.start(0);
+    ttsExamplePlayback("Interactive Mode");
+    toggleDemoCondition = !toggleDemoCondition;
+    framerate = 1000;
+    frameCount = 0;
+  }
+  
 }
 
 public Bead endListener() {
