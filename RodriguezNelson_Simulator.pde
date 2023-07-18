@@ -11,6 +11,8 @@ TextToSpeechMaker ttsMaker;
 
 JSONArray cadenceData;
 PImage Navigation;
+
+WavePlayer wavePlayer;
 SamplePlayer simulatorStart;
 SamplePlayer toggle;
 SamplePlayer unToggle;
@@ -47,6 +49,7 @@ Button HeartRate;
 Button StrideLength;
 
 Glide masterGainGlide;
+Glide toggleGlide;
 Glide cadenceGlide;
 Glide heartRateGlide;
 Glide stepImpactGlide;
@@ -55,7 +58,6 @@ Glide paceGlide;
 Glide filterGlide;
 
 Gain masterGain;
-
 BiquadFilter bqFilter;
 
 String eventJSON1 = "Cadence.json";
@@ -92,7 +94,7 @@ void setup() {
   heartRateBeep.pause(true);
   stepImpactIntensity.pause(true);
   strideLengthSynth.pause(true);
-  
+
   Navigation = loadImage("Navigation.png");
 
   cadenceData = loadJSONArray("Cadence.json"); // retrive cadence from JSON array
@@ -104,7 +106,7 @@ void setup() {
   // Volume properties
   masterGainGlide = new Glide(ac, 1.0, 500);
   masterGain = new Gain(ac, 1, masterGainGlide);
-  
+
   filterGlide = new Glide(ac, 10.0, 0.5f);
   bqFilter = new BiquadFilter(ac, BiquadFilter.LP, filterGlide, 0.5f);
 
@@ -116,13 +118,21 @@ void setup() {
 
   stepImpactGlide = new Glide(ac, 1.0, 10);
   stepImpactIntensity.setRate(stepImpactGlide);
-  
+
   strideLengthGlide = new Glide(ac, 1.0, 10);
   strideLengthSynth.setRate(strideLengthGlide);
-  
-  paceGlide = new Glide(ac, 1.0, 10);
 
+  paceGlide = new Glide(ac, 1.0, 10);
   ttsMaker = new TextToSpeechMaker();
+
+  toggleGlide = new Glide(ac, 1.0, 1);
+  toggle.setRate(toggleGlide);
+  toggleGlide.setValue(3);
+
+  // Set up the WavePlayer with a sine waveform
+  float frequency = 440.0;
+  wavePlayer = new WavePlayer(ac, frequency, Buffer.SINE);
+  wavePlayer.pause(true);
 
   // add inputs to gain and ac
   masterGain.addInput(bqFilter);
@@ -139,6 +149,7 @@ void setup() {
   ac.out.addInput(heartRateBeep);
   ac.out.addInput(stepImpactIntensity);
   ac.out.addInput(strideLengthSynth);
+  ac.out.addInput(wavePlayer);
 
   // User Interface
   ConstructUI();
@@ -164,7 +175,7 @@ public void SetTargetHeartRate(float value) {
 
 // value -> number in seconds
 public void setTargetPace(float value) {
-  paceGlide.setValue(value/60.0f); //output in minutes per mile; 
+  paceGlide.setValue(value/60.0f); //output in minutes per mile;
 }
 
 // stride length (feet) =  velocity / (cadence/60)
@@ -177,7 +188,16 @@ public void setStrideLength() {
 
 public String getStepImpactIntensity() {
   // play a tts maybe
-  return "Forceful";
+  if (!enableStepImpact && wavePlayer.getFrequency() < 100) {
+    return "Forceful";
+  } else if (!enableStepImpact && wavePlayer.getFrequency() > 100 &&
+    wavePlayer.getFrequency() < 3000) {
+    return "Moderate";
+  } else if (!enableStepImpact && wavePlayer.getFrequency() > 3000) {
+    return "Light";
+  } else {
+    return "N/A";
+  }
 }
 
 public void toggleCadence() {
@@ -202,19 +222,6 @@ public void toggleHeartRate() {
   }
 }
 
-public void toggleStepImpact() {
-  enableStepImpact = !enableStepImpact;
-  if (!enableStepImpact) {
-    toggle.start(0);
-    // in order to avoid overwhelming user with redundant sonfication
-    cadenceTick.pause(true); // researcher still has option to enable cadence through toggle;
-    stepImpactIntensity.pause(false);
-  } else {
-    unToggle.start(0);
-    stepImpactIntensity.pause(true);
-  }
-}
-
 public void toggleStrideLength() {
   if (enableStrideLength) {
     toggle.start(0);
@@ -230,12 +237,35 @@ public void toggleGPS() {
   if (enableGPS) {
     toggle.start(0);
     ttsExamplePlayback("GPS Enabled");
-    image(Navigation, width/2, height/2);
   } else {
     unToggle.start(0);
     ttsExamplePlayback("GPS Disabled");
   }
   enableGPS = !enableGPS;
+}
+
+public void recommendNavigation() {
+  if (enableGPS) {
+    ttsExamplePlayback("Please enable GPS First");
+  } else {
+    toggle.start(0);
+    ttsExamplePlayback("Start at Georgia Institute of Technology, North Avenue North West." +
+      "Then make a left onto Techwood Drive North West.Area is high traffic and construction." +
+      "Please proceed with caution of vehicles and other obstacles on the sidewalk.");
+  }
+}
+
+// uses wavePlayer to generate sine wave
+// low frequency indicating forceful, high frequency indicating light
+public void toggleStepImpact() {
+  if (enableStepImpact) {
+    toggle.start(0);
+    wavePlayer.start();
+  } else {
+    unToggle.start(0);
+    wavePlayer.pause(true);
+  }
+  enableStepImpact = !enableStepImpact;
 }
 
 // reset all sonfications
@@ -245,6 +275,7 @@ public void resetAll() {
   enableCadence = !enableCadence;
   heartRateBeep.pause(true);
   enableHeartRate = !enableHeartRate;
+  ;
   stepImpactIntensity.pause(true);
   enableStepImpact = !enableStepImpact;
   strideLengthSynth.pause(true);
@@ -316,7 +347,6 @@ public void ConstructUI() {
     .setColorActive(color(255, 0, 100))
     .activateBy((ControlP5.RELEASE));
 
-
   p5.addButton("resetAll")
     .setLabel("Reset Sonifications")
     .setSize(150, 30)
@@ -326,23 +356,40 @@ public void ConstructUI() {
     .setColorActive(color(255, 0, 100))
     .activateBy((ControlP5.RELEASE));
 
+  p5.addButton("recommendNavigation")
+    .setLabel("Suggest Route Guidance")
+    .setSize(250, 20)
+    .setPosition(width/2 + 120, 275)
+    .setColorForeground(color(255, 0, 100))
+    .setColorBackground(color(120, 0, 50))
+    .setColorActive(color(255, 0, 100))
+    .activateBy((ControlP5.RELEASE));
+
   p5.addSlider("MasterGainSlider")
     .setValue(20)
-    .setSize(30, 230)
+    .setSize(25, 230)
     .setLabel("Master Gain")
     .setPosition(225, 325)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
-    
-  // add low pass filter slider here.
-    
+  
+  p5.addSlider("StepImpactSlider")
+    .setValue(300)
+    .setSize(25, 230)
+    .setRange(10, 20000)
+    .setLabel("Master Gain")
+    .setPosition(310, 325)
+    .setColorForeground(color(255, 0, 100))
+    .setColorBackground(color(120, 0, 50))
+    .setColorActive(color(255, 0, 100));
+
   paceSlider = p5.addSlider("paceSlider")
-    .setSize(30, 230)
+    .setSize(25, 230)
     .setRange(1500, 200)
     .setValue(500)
     .setLabel("Target Pace")
-    .setPosition(290, 325)
+    .setPosition(280, 325)
     .setColorForeground(color(255, 0, 100))
     .setColorBackground(color(120, 0, 50))
     .setColorActive(color(255, 0, 100));
@@ -357,7 +404,7 @@ public void ConstructUI() {
     .setTickMarkLength(4)
     .snapToTickMarks(false)
     .setDragDirection(Slider.VERTICAL)
-    .setPosition(75, 50)
+    .setPosition(55, 50)
     .setRadius(100)
     .setAngleRange(2*PI) // radians
     .setRange(120, 220)
@@ -374,7 +421,7 @@ public void ConstructUI() {
     .setNumberOfTickMarks(15)
     .setTickMarkLength(4)
     .setDragDirection(Slider.VERTICAL)
-    .setPosition(300, 50)
+    .setPosition(280, 50)
     .setRadius(100)
     .setAngleRange(2*PI) // radians
     .setRange(60, 200)
@@ -405,29 +452,25 @@ void draw() {
     if (heartRateAlert == false && heartRateKnob.getValue() < 160) {
       ttsExamplePlayback("Heart rate now stable");
     }
- 
   }
   setStrideLength();
+
   // UI Geometry
   background(color(20, 20, 20));
 
   fill(40, 40, 40);
   rect(10, height/2, 780, 290);
   rect(10, height/2, 370, 290);
-  // rect(width/2 + 100, 10, 370, 290);
+  rect(width/2 + 120, 20, 250, 250);
+  image(Navigation, width/2 + 130, 30, 230, 230);
 
   fill (20, 20, 20);
   rect(width/2, height/2 + 30, 370, 230);
-  
-  if (!enableGPS) {
-      image(Navigation, width/2 + 130, 30, 230, 230);
-  }
-
 
   fill(255);
   textSize(15);
   text("Sonification Toggles", 50, height/2 + 20);
-  text("Physical Performance Data ", width/2 + 10, height/2 + 20);
+  text("Sensor Data", width/2 + 10, height/2 + 20);
   text("Current Cadence (SPM) - " + (int)cadenceKnob.getValue(), width/2 + 20, height/2 + 60);
   text("Current Heart Rate (BPM) - " + (int)heartRateKnob.getValue(), width/2 + 20, height/2 + 90);
   text("Step Impact Intensity - " + getStepImpactIntensity(), width/2 + 20, height/2 + 120);
@@ -448,8 +491,8 @@ public Bead endListener() {
   Bead endListener = new Bead() {
     public void messageReceived(Bead message) {
       SamplePlayer sp = (SamplePlayer) message;
-      cadenceGlide.setValue(10.0);
-      heartRateGlide.setValue(10.0);
+      cadenceGlide.setValue(0);
+      heartRateGlide.setValue(0);
       sp.pause(true);
     }
   };
