@@ -331,7 +331,7 @@ public void heartRateCheck() {
     heartRateStatus = "Stable";
   }
   if (heartRateKnob.getValue() > 185) {
-    float value = lerp((float)cadenceKnob.getValue(), 120.0, 0.002);
+    float value = lerp((float)cadenceKnob.getValue(), 120.0, 0.0005);
     cadenceKnob.setValue(value);
   }
 }
